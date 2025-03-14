@@ -17,7 +17,7 @@ jobs:
 
       - name: Unzip file
         run: |
-          unzip -o YOUR_FILE.zip -d .
+          unzip -o home.zip -d .
           ls -al
 
       - name: Commit changes
