@@ -17,22 +17,29 @@ jobs:
 
       - name: Delete unnecessary files
         run: |
-          # 修正后的 find 命令（移除换行符）
+          # 修正后的删除命令（双重保护 .git 目录）
           find . -mindepth 1 \
             -not -path './.github/*' \
+            -not -path './.git/*' \
+            -not -path './.git' \
             -not -name 'home.zip' \
-            -not -name '.git' \
             -exec rm -rf {} + || true
 
-          # 验证结果
-          echo "清理后文件结构："
-          ls -al
+          echo "清理后验证 .git 是否存在："
+          ls -al .git
 
       - name: Commit changes
         run: |
+          # 确保在正确目录执行
+          cd "$GITHUB_WORKSPACE" || exit 1
+          
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
+          # 强制重新加载 git 索引
+          git reset --hard
+          git clean -fd
+
           git add -A
           if [ -z "$(git status --porcelain)" ]; then
             echo "没有需要提交的更改"
