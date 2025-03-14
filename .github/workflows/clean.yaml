@@ -1,0 +1,47 @@
+name: Clean Repository
+
+on:
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 必须的写入权限
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整历史记录
+
+      - name: Delete unnecessary files
+        run: |
+          # 保留项目结构示意图：
+          # .
+          # ├── .github/
+          # └── home.zip
+
+          # 删除除 home.zip 和 .github 外的所有内容
+          find . -mindepth 1 \
+            -not -path './.github*' \      # 保留整个 .github 目录
+            -not -name 'home.zip' \        # 保留 home.zip
+            -not -name '.git' \            # 保留 .git 目录（自动存在）
+            -exec rm -rf {} + || true      # 强制删除
+
+          # 显示清理后的目录结构
+          ls -al
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # 检测并提交变更
+          git add -A
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+          else
+            git commit -m "Cleanup: Remove all files except home.zip and .github"
+            git push "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref }}
+          fi
