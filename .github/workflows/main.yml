@@ -1,0 +1,19 @@
+name: Unzip File
+
+on:
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Unzip file
+        run: |
+          # 将 YOUR_FILE_NAME.zip 替换为你的实际 ZIP 文件名
+          unzip -o home.zip -d .
+          
+          # 可选：显示解压后的目录结构
+          ls -al
