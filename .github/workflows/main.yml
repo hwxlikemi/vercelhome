@@ -1,28 +1,33 @@
-name: Unzip File
+name: Unzip and Commit
 
 on:
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch:
 
 jobs:
-  unzip:
+  unzip-and-commit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 关键授权设置
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整提交历史
 
       - name: Unzip file
         run: |
-          # 将 YOUR_FILE_NAME.zip 替换为你的实际 ZIP 文件名
-          unzip -o home.zip -d .
-          
-          # 可选：显示解压后的目录结构
+          unzip -o YOUR_FILE.zip -d .
           ls -al
-          
-          # 在 unzip step 之后添加以下内容：
-      - name: Commit extracted files
+
+      - name: Commit changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add .
-          git commit -m "Add extracted files" || echo "No changes to commit"
-          git push
+          
+          # 添加所有更改并提交
+          git add -A
+          git commit -m "Auto-commit extracted files" || echo "No changes to commit"
+          
+          # 使用特殊格式推送（关键步骤）
+          git push "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref }}
